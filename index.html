@@ -1,0 +1,99 @@
+<!-- index.html — شاشة تسجيل الدخول (منصة متعددة المدارس، مبنية على Supabase) -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول — منصة إدارة المدارس</title>
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-logo">
+      <div class="badge">م</div>
+      <h1>منصة إدارة المدارس</h1>
+      <p>سجّل الدخول إلى حساب مدرستك</p>
+    </div>
+
+    <div class="auth-error" id="authError"></div>
+
+    <form id="loginForm">
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="email" required placeholder="example@school.com">
+      </div>
+      <div class="field">
+        <label>كلمة المرور</label>
+        <input type="password" id="password" required placeholder="••••••••">
+      </div>
+      <button type="submit" class="btn btn-primary" id="loginBtn">تسجيل الدخول</button>
+    </form>
+
+    <div class="demo-hint">
+      مدرسة جديدة؟ <a href="signup.html" style="color:var(--color-primary-blue);font-weight:600;">أنشئ حساب مدرستك من هنا</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script src="js/auth.js"></script>
+<script src="js/pages/ui-helpers.js"></script>
+<script>
+  const PENDING_KEY = "bounouni_pending_school_signup";
+
+  (async function () {
+    // إن كانت هذه عودة من رابط تأكيد بريد إلكتروني وبها تسجيل مدرسة معلّق، أكمله هنا مباشرة
+    const pendingRaw = localStorage.getItem(PENDING_KEY);
+    if (pendingRaw) {
+      const { data: { session } } = await supabaseClient.auth.getSession();
+      if (session) {
+        try {
+          const pending = JSON.parse(pendingRaw);
+          const existingProfile = await getMyProfile();
+          if (!existingProfile) await registerSchool(pending.schoolName, pending.schoolSlug, pending.adminName);
+          localStorage.removeItem(PENDING_KEY);
+          window.location.href = "pages/admin-dashboard.html";
+          return;
+        } catch (err) {
+          console.error(err);
+          localStorage.removeItem(PENDING_KEY);
+          document.getElementById("authError").textContent = "حدث خطأ أثناء إكمال إعداد المدرسة: " + (err.message || "خطأ غير معروف");
+          document.getElementById("authError").classList.add("show");
+        }
+      }
+    }
+
+    // إن كانت هناك جلسة قائمة بالفعل، حوّل مباشرة
+    const existing = await getCurrentUser();
+    if (existing) { window.location.href = "pages/" + roleHome(existing.role); return; }
+
+    document.getElementById("loginForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const btn = document.getElementById("loginBtn");
+      btn.textContent = "جارٍ الدخول...";
+      btn.disabled = true;
+
+      const email = document.getElementById("email").value.trim();
+      const password = document.getElementById("password").value;
+      const result = await login(email, password);
+      const errorBox = document.getElementById("authError");
+
+      if (!result.ok) {
+        errorBox.textContent = result.message;
+        errorBox.classList.add("show");
+        btn.textContent = "تسجيل الدخول";
+        btn.disabled = false;
+        return;
+      }
+      errorBox.classList.remove("show");
+      window.location.href = "pages/" + roleHome(result.user.role);
+    });
+  })();
+</script>
+</body>
+</html>

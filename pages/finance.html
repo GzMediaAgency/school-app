@@ -1,0 +1,122 @@
+<!-- pages/finance.html — المداخيل والمصاريف -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المالية والمدفوعات — منصة إدارة المدارس</title>
+<link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  .receipt-preview { max-width:380px; margin:16px auto 0; background:#fff; border:2px dashed var(--color-border); border-radius:10px; padding:20px; text-align:center; }
+  @media print { .no-print { display:none !important; } .sidebar, .topbar { display:none !important; } }
+  .due-input { width:100px; padding:6px 8px; border:1px solid var(--color-border); border-radius:6px; }
+  .date-input-sm { padding:6px 8px; border:1px solid var(--color-border); border-radius:6px; font-size:12.5px; }
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="layout-root">
+  <div class="main-area">
+    <div class="topbar no-print">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-outline sidebar-toggle" id="sidebar-toggle-btn">☰</button>
+        <h2 id="page-title">المالية والمدفوعات</h2>
+      </div>
+      <div class="user-chip">👋 <span id="userNameChip"></span></div>
+    </div>
+
+    <div class="content">
+      <div class="stat-grid" id="financeStats"></div>
+
+      <div class="tabs no-print">
+        <button class="tab-btn active" data-tab="tab-income">💳 المداخيل</button>
+        <button class="tab-btn" data-tab="tab-expenses">🧾 المصاريف</button>
+      </div>
+
+      <!-- ============ وحدة المداخيل (واجبات الدراسة الشهرية) ============ -->
+      <div class="tab-panel active" id="tab-income">
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header">
+            <h3>واجبات الدراسة الشهرية</h3>
+          </div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <input type="month" id="incomeMonth" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;">
+            <select id="incomeLevel" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;">
+              <option value="">اختر المستوى</option>
+            </select>
+            <select id="incomeClass" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;">
+              <option value="">اختر القسم</option>
+            </select>
+            <input type="number" id="defaultAmount" value="800" title="المبلغ الافتراضي" style="width:110px;padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;" placeholder="المبلغ الافتراضي">
+            <button class="btn btn-outline btn-sm" id="loadIncomeBtn">📋 عرض تلاميذ القسم</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <table>
+            <thead><tr><th>التلميذ</th><th>واجب الشهر (د.م)</th><th>تاريخ الاستحقاق</th><th>الحالة</th></tr></thead>
+            <tbody id="incomeTableBody"><tr><td colspan="4" style="text-align:center;color:var(--color-text-muted);padding:20px;">اختر الشهر والمستوى والقسم ثم اضغط "عرض تلاميذ القسم"</td></tr></tbody>
+          </table>
+          <div style="margin-top:14px;text-align:left;">
+            <button class="btn btn-success" id="saveIncomeBtn" style="display:none;">💾 حفظ الواجبات</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- ============ وحدة المصاريف ============ -->
+      <div class="tab-panel" id="tab-expenses">
+        <div class="card">
+          <div class="card-header">
+            <h3>مصاريف المدرسة</h3>
+            <button class="btn btn-primary btn-sm" id="addExpenseBtn">+ إضافة مصروف</button>
+          </div>
+          <table>
+            <thead><tr><th>التصنيف</th><th>المبلغ</th><th>التاريخ</th><th>الوصف</th><th></th></tr></thead>
+            <tbody id="expensesTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="receipt-preview no-print" id="receiptBox" style="display:none;">
+        <h3 style="margin-bottom:10px;">🧾 إيصال دفع</h3>
+        <p id="receiptContent" style="font-size:13.5px;line-height:2;"></p>
+        <button class="btn btn-outline btn-sm" onclick="window.print()">🖨️ طباعة الإيصال</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal مصروف -->
+<div class="modal-overlay" id="expenseModal">
+  <div class="modal-box">
+    <h3>إضافة مصروف</h3>
+    <div class="field"><label>التصنيف</label>
+      <select id="expenseCategory">
+        <option value="رواتب">رواتب</option>
+        <option value="صيانة">صيانة</option>
+        <option value="تجهيزات">تجهيزات</option>
+        <option value="بناء">بناء</option>
+        <option value="أخرى">أخرى</option>
+      </select>
+    </div>
+    <div class="field"><label>المبلغ (د.م)</label><input type="number" id="expenseAmount"></div>
+    <div class="field"><label>التاريخ</label><input type="date" id="expenseDate"></div>
+    <div class="field"><label>الوصف</label><textarea id="expenseDesc" rows="2"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancelExpenseBtn">إلغاء</button>
+      <button class="btn btn-primary" id="saveExpenseBtn">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/pages/ui-helpers.js"></script>
+<script src="../js/pages/finance.js"></script>
+</body>
+</html>

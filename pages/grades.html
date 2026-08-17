@@ -1,0 +1,71 @@
+<!-- pages/grades.html — إدخال الدرجات -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الدرجات — منصة إدارة المدارس</title>
+<link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="app-shell" id="layout-root">
+  <div class="main-area">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-outline sidebar-toggle" id="sidebar-toggle-btn">☰</button>
+        <h2 id="page-title">الدرجات</h2>
+      </div>
+      <div class="user-chip">👋 <span id="userNameChip"></span></div>
+    </div>
+
+    <div class="content">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <h3>إدخال الدرجات</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select id="classSelect" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;"></select>
+            <select id="subjectSelect" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;"></select>
+            <select id="termSelect" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;">
+              <option value="الفترة الأولى">الفترة الأولى</option>
+              <option value="الفترة الثانية">الفترة الثانية</option>
+              <option value="الفترة الثالثة">الفترة الثالثة</option>
+            </select>
+            <select id="typeSelect" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;">
+              <option value="فرض">فرض</option>
+              <option value="اختبار">اختبار</option>
+              <option value="مشاركة">مشاركة</option>
+            </select>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>الطالب</th><th>الدرجة</th><th>من (الحد الأقصى)</th></tr></thead>
+          <tbody id="gradesInputBody"></tbody>
+        </table>
+        <div style="margin-top:14px;text-align:left;">
+          <button class="btn btn-success" id="saveGradesBtn">💾 حفظ الدرجات</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:12px;">معدلات الطلاب في المادة المختارة</h3>
+        <table>
+          <thead><tr><th>الطالب</th><th>عدد الدرجات المسجلة</th><th>المعدل</th></tr></thead>
+          <tbody id="averagesBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/pages/ui-helpers.js"></script>
+<script src="../js/pages/grades.js"></script>
+</body>
+</html>

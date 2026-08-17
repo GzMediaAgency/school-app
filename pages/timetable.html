@@ -1,0 +1,76 @@
+<!-- pages/timetable.html — الجدول الدراسي الأسبوعي -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الجدول الدراسي — منصة إدارة المدارس</title>
+<link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  .tt-table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  .tt-table th, .tt-table td { border:1px solid var(--color-border); padding:6px; text-align:center; vertical-align:top; }
+  .tt-table th { background:var(--color-primary-blue-light); color:var(--color-primary-blue-dark); }
+  .tt-slot { min-height:56px; cursor:pointer; border-radius:6px; padding:4px; }
+  .tt-slot:hover { background:var(--color-bg); }
+  .tt-slot.filled { background:var(--color-success-green-light); }
+  .tt-slot .subj { font-weight:700; color:var(--color-success-green); display:block; }
+  .tt-slot .tch { color:var(--color-text-muted); font-size:11px; }
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="layout-root">
+  <div class="main-area">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-outline sidebar-toggle" id="sidebar-toggle-btn">☰</button>
+        <h2 id="page-title">الجدول الدراسي</h2>
+      </div>
+      <div class="user-chip">👋 <span id="userNameChip"></span></div>
+    </div>
+
+    <div class="content">
+      <div class="card">
+        <div class="card-header">
+          <h3>اختر الفصل</h3>
+          <select id="classSelect" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;min-width:200px;"></select>
+        </div>
+        <div style="overflow-x:auto;">
+          <table class="tt-table" id="ttGrid"></table>
+        </div>
+        <p style="margin-top:10px;font-size:12px;color:var(--color-text-muted);" id="permHint"></p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal حصة -->
+<div class="modal-overlay" id="slotModal">
+  <div class="modal-box">
+    <h3>إضافة / تعديل حصة</h3>
+    <input type="hidden" id="slotId">
+    <input type="hidden" id="slotDay">
+    <input type="hidden" id="slotStart">
+    <input type="hidden" id="slotEnd">
+    <div class="field"><label>المادة</label><select id="slotSubject"></select></div>
+    <div class="field"><label>المدرس</label><select id="slotTeacher"></select></div>
+    <div class="auth-error" id="conflictError" style="display:none;"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="deleteSlotBtn" style="display:none;">حذف الحصة</button>
+      <button class="btn btn-outline" id="cancelSlotBtn">إلغاء</button>
+      <button class="btn btn-primary" id="saveSlotBtn">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/pages/ui-helpers.js"></script>
+<script src="../js/pages/timetable.js"></script>
+</body>
+</html>

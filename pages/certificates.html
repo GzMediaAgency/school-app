@@ -1,0 +1,122 @@
+<!-- pages/certificates.html — إصدار الشهادات -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>الشهادات — منصة إدارة المدارس</title>
+<link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  .cert-preview {
+    background:#fff; background-size:cover; background-position:center; border:10px double var(--color-primary-blue); border-radius:10px;
+    padding:44px 30px; text-align:center; max-width:680px; margin:0 auto; position:relative;
+  }
+  .cert-preview.has-template { border:none; min-height:480px; display:flex; flex-direction:column; justify-content:center; }
+  .cert-preview::before {
+    content:""; position:absolute; inset:14px; border:2px solid var(--color-success-green); border-radius:6px; pointer-events:none;
+  }
+  .cert-preview.has-template::before { display:none; }
+  .cert-preview.has-template .cert-badge,
+  .cert-preview.has-template .cert-school { display:none; }
+  .template-upload-box { display:flex; align-items:center; gap:12px; flex-wrap:wrap; padding:14px; background:var(--color-bg); border-radius:var(--radius-md); margin-bottom:20px; }
+  .template-thumb { width:60px; height:40px; object-fit:cover; border-radius:6px; border:1px solid var(--color-border); }
+  .cert-badge { width:70px; height:70px; border-radius:50%; background:var(--color-primary-blue); color:#fff; display:flex; align-items:center; justify-content:center; font-size:26px; font-weight:700; margin:0 auto 14px; border:3px solid var(--color-success-green); }
+  .cert-school { font-size:15px; color:var(--color-text-muted); margin-bottom:22px; letter-spacing:.5px; }
+  .cert-title { font-size:26px; font-weight:800; color:var(--color-primary-blue-dark); margin-bottom:8px; }
+  .cert-sub { font-size:13px; color:var(--color-text-muted); margin-bottom:26px; }
+  .cert-student { font-size:24px; font-weight:700; color:var(--color-success-green); margin:18px 0; border-bottom:2px solid var(--color-border); display:inline-block; padding-bottom:6px; }
+  .cert-desc { font-size:14px; line-height:2; color:var(--color-text); margin-bottom:26px; }
+  .cert-footer { display:flex; justify-content:space-between; margin-top:36px; font-size:12.5px; color:var(--color-text-muted); }
+  @media print {
+    .no-print { display:none !important; }
+    .sidebar, .topbar { display:none !important; }
+    .content { padding:0 !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="layout-root">
+  <div class="main-area">
+    <div class="topbar no-print">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-outline sidebar-toggle" id="sidebar-toggle-btn">☰</button>
+        <h2 id="page-title">الشهادات</h2>
+      </div>
+      <div class="user-chip">👋 <span id="userNameChip"></span></div>
+    </div>
+
+    <div class="content">
+      <div class="card no-print" style="margin-bottom:20px;">
+        <div class="card-header"><h3>تصميم الشهادة الخاص بمدرستك</h3></div>
+        <div class="template-upload-box">
+          <img id="templateThumb" class="template-thumb" style="display:none;">
+          <span id="templateStatus" style="font-size:12.5px;color:var(--color-text-muted);">لم يتم رفع أي تصميم بعد — سيُستخدم التصميم الافتراضي.</span>
+          <input type="file" id="templateFileInput" accept="image/*" style="display:none;">
+          <button class="btn btn-outline btn-sm" id="uploadTemplateBtn">📤 تحميل تصميم الشهادة الخاص بمدرستك</button>
+          <button class="btn btn-danger btn-sm" id="removeTemplateBtn" style="display:none;">حذف التصميم المرفوع</button>
+        </div>
+        <p style="font-size:11.5px;color:var(--color-text-muted);">
+          ارفع صورة تصميم شهادتك (تحمل شعار مدرستك وحدودها الخاصة) — سيُعرض بيانات التلميذ ونوع الشهادة فوقها تلقائيًا عند الطباعة. يُفضّل صورة بنسبة عرض إلى ارتفاع قريبة من A4 أفقي، وحجم أقل من 1MB.
+        </p>
+      </div>
+
+      <div class="card no-print" style="margin-bottom:20px;">
+        <div class="card-header"><h3>إصدار شهادة جديدة</h3></div>
+        <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;">
+          <div class="field" style="flex:1;min-width:200px;margin-bottom:0;">
+            <label>الطالب</label>
+            <select id="certStudent"></select>
+          </div>
+          <div class="field" style="flex:1;min-width:200px;margin-bottom:0;">
+            <label>نوع الشهادة</label>
+            <select id="certType">
+              <option value="شهادة نجاح">شهادة نجاح</option>
+              <option value="شهادة تفوق">شهادة تفوق</option>
+              <option value="شهادة مشاركة">شهادة مشاركة</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" id="previewBtn">معاينة</button>
+        </div>
+      </div>
+
+      <div class="cert-preview" id="certPreview" style="display:none;">
+        <div class="cert-badge">ب</div>
+        <div class="cert-school" id="certSchoolName">منصة إدارة المدارس</div>
+        <div class="cert-title" id="certTypeTitle">شهادة نجاح</div>
+        <div class="cert-sub">تشهد إدارة المدرسة بأن الطالب(ة)</div>
+        <div class="cert-student" id="certStudentName">—</div>
+        <div class="cert-desc" id="certDesc">قد أتم(ت) بنجاح متطلبات المستوى الدراسي خلال هذه السنة، وذلك تقديرًا لجهوده(ا) والتزامه(ا).</div>
+        <div class="cert-footer">
+          <span id="certDate"></span>
+          <span>ختم وتوقيع إدارة المدرسة</span>
+        </div>
+      </div>
+
+      <div class="no-print" style="text-align:center;margin-top:20px;display:none;" id="certActions">
+        <button class="btn btn-success" id="printBtn">🖨️ طباعة / حفظ PDF</button>
+        <button class="btn btn-outline" id="saveCertBtn">📂 حفظ في السجل</button>
+      </div>
+
+      <div class="card no-print" style="margin-top:24px;">
+        <h3 style="margin-bottom:12px;">سجل الشهادات الصادرة</h3>
+        <table>
+          <thead><tr><th>الطالب</th><th>النوع</th><th>تاريخ الإصدار</th></tr></thead>
+          <tbody id="certLogBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/pages/ui-helpers.js"></script>
+<script src="../js/pages/certificates.js"></script>
+</body>
+</html>

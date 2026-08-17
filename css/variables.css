@@ -1,0 +1,27 @@
+/* css/variables.css — متغيرات الألوان والقياسات الأساسية لمدرسة بونوني الخاصة */
+:root {
+  /* الألوان الأساسية الثلاثة المطلوبة */
+  --color-primary-blue: #1E4FA3;
+  --color-primary-blue-dark: #163B7A;
+  --color-primary-blue-light: #E8EFFB;
+  --color-success-green: #1E9E5A;
+  --color-success-green-light: #E5F7EC;
+  --color-danger-red: #D9302F;
+  --color-danger-red-light: #FBEAEA;
+  --color-warning-amber: #C98A1E;
+
+  /* ألوان مساعدة */
+  --color-bg: #F4F6FA;
+  --color-surface: #FFFFFF;
+  --color-text: #1B2430;
+  --color-text-muted: #667085;
+  --color-border: #E2E6EE;
+
+  /* قياسات */
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --shadow-card: 0 2px 10px rgba(20, 30, 60, 0.06);
+  --sidebar-width: 260px;
+  --font-main: "Tajawal", "Segoe UI", Tahoma, sans-serif;
+}

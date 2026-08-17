@@ -1,0 +1,57 @@
+<!-- pages/parent-dashboard.html — لوحة متابعة ولي الأمر -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>لوحة المتابعة — منصة إدارة المدارس</title>
+<link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="app-shell" id="layout-root">
+  <div class="main-area">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-outline sidebar-toggle" id="sidebar-toggle-btn">☰</button>
+        <h2 id="page-title">لوحة المتابعة</h2>
+      </div>
+      <div class="user-chip">👋 <span id="userNameChip"></span></div>
+    </div>
+
+    <div class="content">
+      <div class="card no-print" style="margin-bottom:16px;" id="childSwitcherBox">
+        <div class="card-header"><h3>اختر الابن/الابنة</h3></div>
+        <select id="childSelect" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;min-width:220px;"></select>
+      </div>
+
+      <div class="stat-grid" id="childStats"></div>
+
+      <div class="chart-grid" style="grid-template-columns:1fr 1fr;">
+        <div class="card">
+          <h3 style="margin-bottom:12px;">آخر الدرجات</h3>
+          <table><tbody id="childGrades"></tbody></table>
+        </div>
+        <div class="card">
+          <h3 style="margin-bottom:12px;">المصروفات المستحقة</h3>
+          <table><tbody id="childPayments"></tbody></table>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:16px;">
+        <h3 style="margin-bottom:12px;">آخر الإشعارات</h3>
+        <div id="parentNotifs"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/pages/ui-helpers.js"></script>
+<script src="../js/pages/parent-dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,140 @@
+<!-- signup.html — تسجيل مدرسة جديدة (نقطة الدخول الأساسية لأي مدرسة جديدة على المنصة) -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل مدرسة جديدة — منصة إدارة المدارس</title>
+<link rel="stylesheet" href="css/variables.css">
+<link rel="stylesheet" href="css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="auth-screen">
+  <div class="auth-card" style="max-width:440px;">
+    <div class="auth-logo">
+      <div class="badge">+</div>
+      <h1>أنشئ حساب مدرستك</h1>
+      <p>فترة تجريبية مجانية 14 يومًا — بدون بطاقة بنكية</p>
+    </div>
+
+    <div class="auth-error" id="signupError"></div>
+
+    <form id="signupForm">
+      <div class="field">
+        <label>اسم المدرسة</label>
+        <input type="text" id="schoolName" required placeholder="مثال: مدرسة بونوني الخاصة">
+      </div>
+      <div class="field">
+        <label>معرّف المدرسة (بالإنجليزية، بدون فراغات)</label>
+        <input type="text" id="schoolSlug" required placeholder="مثال: bounouni" pattern="[a-z0-9\-]+">
+      </div>
+      <div class="field">
+        <label>اسمك الكامل (كمدير للمدرسة)</label>
+        <input type="text" id="adminName" required placeholder="مثال: عبد الرحيم بوعمر">
+      </div>
+      <div class="field">
+        <label>البريد الإلكتروني</label>
+        <input type="email" id="adminEmail" required>
+      </div>
+      <div class="field">
+        <label>كلمة المرور (6 أحرف على الأقل)</label>
+        <input type="password" id="adminPassword" required minlength="6">
+      </div>
+      <button type="submit" class="btn btn-primary" id="signupBtn">إنشاء الحساب</button>
+    </form>
+
+    <div class="demo-hint">
+      لديك حساب بالفعل؟ <a href="index.html" style="color:var(--color-primary-blue);font-weight:600;">تسجيل الدخول</a>
+    </div>
+  </div>
+</div>
+
+<script src="js/supabase-client.js"></script>
+<script src="js/db.js"></script>
+<script>
+  const PENDING_KEY = "bounouni_pending_school_signup";
+
+  // ---------- يُنفَّذ عند تحميل الصفحة: يتحقق إن كان هذا رجوعًا من رابط تأكيد البريد ----------
+  (async function completeRegistrationIfPending() {
+    const pendingRaw = localStorage.getItem(PENDING_KEY);
+    if (!pendingRaw) return; // لا يوجد تسجيل معلّق — صفحة عادية
+
+    const { data: { session } } = await supabaseClient.auth.getSession();
+    if (!session) return; // لم يُؤكَّد البريد بعد، أو لا توجد جلسة
+
+    // توجد جلسة فعلية الآن (إما فورية أو بعد تأكيد البريد) + توجد بيانات تسجيل معلّقة
+    const pending = JSON.parse(pendingRaw);
+    const errorBox = document.getElementById("signupError");
+    try {
+      // تحقّق أولًا أن الملف الشخصي غير موجود مسبقًا (تفاديًا لإنشاء مدرسة مكررة عند إعادة تحميل الصفحة)
+      const existingProfile = await getMyProfile();
+      if (!existingProfile) {
+        await registerSchool(pending.schoolName, pending.schoolSlug, pending.adminName);
+      }
+      localStorage.removeItem(PENDING_KEY);
+      window.location.href = "pages/admin-dashboard.html";
+    } catch (err) {
+      console.error(err);
+      errorBox.textContent = "تم تأكيد بريدك، لكن حدث خطأ أثناء إتمام إعداد المدرسة: " + (err.message || "خطأ غير معروف") + " — إن استمر الخطأ، احذف الحساب من Supabase وأعد التسجيل بمعرّف مختلف.";
+      errorBox.classList.add("show");
+      localStorage.removeItem(PENDING_KEY);
+    }
+  })();
+
+  document.getElementById("signupForm").addEventListener("submit", async function (e) {
+    e.preventDefault();
+    const btn = document.getElementById("signupBtn");
+    const errorBox = document.getElementById("signupError");
+    errorBox.classList.remove("show");
+
+    const schoolName = document.getElementById("schoolName").value.trim();
+    const schoolSlug = document.getElementById("schoolSlug").value.trim().toLowerCase();
+    const adminName = document.getElementById("adminName").value.trim();
+    const email = document.getElementById("adminEmail").value.trim();
+    const password = document.getElementById("adminPassword").value;
+
+    if (!/^[a-z0-9\-]+$/.test(schoolSlug)) {
+      errorBox.textContent = "معرّف المدرسة يجب أن يحتوي على أحرف إنجليزية صغيرة وأرقام وشرطات فقط.";
+      errorBox.classList.add("show");
+      return;
+    }
+
+    btn.textContent = "جارٍ الإنشاء...";
+    btn.disabled = true;
+
+    try {
+      // نحفظ بيانات المدرسة محليًا *قبل* إنشاء الحساب، لأن الصفحة قد تُعاد زيارتها
+      // لاحقًا (بعد الضغط على رابط تأكيد البريد) بدون أن يعيد المستخدم كتابة هذه البيانات
+      localStorage.setItem(PENDING_KEY, JSON.stringify({ schoolName, schoolSlug, adminName }));
+
+      const { data: signUpData, error: signUpError } = await supabaseClient.auth.signUp({ email, password });
+      if (signUpError) throw signUpError;
+
+      if (!signUpData.session) {
+        // تأكيد البريد مفعّل: لا توجد جلسة فورية — ننتظر حتى يضغط المستخدم رابط التأكيد
+        // (سيُكمل completeRegistrationIfPending() الإعداد تلقائيًا عند عودته لهذه الصفحة)
+        errorBox.textContent = "تم إنشاء الحساب! تحقق من بريدك الإلكتروني واضغط رابط التأكيد — سيُكمل إعداد مدرستك تلقائيًا بعدها.";
+        errorBox.classList.add("show");
+        btn.textContent = "إنشاء الحساب";
+        btn.disabled = false;
+        return;
+      }
+
+      // توجد جلسة فورية (تأكيد البريد غير مفعّل) — نكمل الإعداد مباشرة
+      await registerSchool(schoolName, schoolSlug, adminName);
+      localStorage.removeItem(PENDING_KEY);
+      window.location.href = "pages/admin-dashboard.html";
+    } catch (err) {
+      console.error(err);
+      localStorage.removeItem(PENDING_KEY);
+      errorBox.textContent = "حدث خطأ: " + (err.message || "تعذّر إنشاء الحساب. تحقق من أن معرّف المدرسة غير مستخدم من قبل.");
+      errorBox.classList.add("show");
+      btn.textContent = "إنشاء الحساب";
+      btn.disabled = false;
+    }
+  });
+</script>
+</body>
+</html>

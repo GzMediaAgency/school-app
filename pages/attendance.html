@@ -1,0 +1,80 @@
+<!-- pages/attendance.html — تسجيل الحضور والغياب -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تتبع غياب التلاميذ — منصة إدارة المدارس</title>
+<link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  .att-row { display:flex; align-items:center; justify-content:space-between; padding:10px 12px; border-bottom:1px solid var(--color-border); gap:10px; flex-wrap:wrap; }
+  .att-status-btns { display:flex; gap:6px; }
+  .status-btn { padding:6px 12px; border-radius:8px; font-size:12px; font-weight:600; background:var(--color-bg); color:var(--color-text-muted); border:1px solid var(--color-border) !important; }
+  .status-btn.selected.present { background:var(--color-success-green); color:#fff; border-color:var(--color-success-green) !important; }
+  .status-btn.selected.absent { background:var(--color-danger-red); color:#fff; border-color:var(--color-danger-red) !important; }
+  .status-btn.selected.late { background:var(--color-warning-amber); color:#fff; border-color:var(--color-warning-amber) !important; }
+  .status-btn.selected.excused { background:var(--color-primary-blue); color:#fff; border-color:var(--color-primary-blue) !important; }
+</style>
+</head>
+<body>
+
+<div class="app-shell" id="layout-root">
+  <div class="main-area">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-outline sidebar-toggle" id="sidebar-toggle-btn">☰</button>
+        <h2 id="page-title">تتبع غياب التلاميذ</h2>
+      </div>
+      <div class="user-chip">👋 <span id="userNameChip"></span></div>
+    </div>
+
+    <div class="content">
+      <div class="card" style="margin-bottom:16px;">
+        <div class="card-header">
+          <h3>تسجيل حضور اليوم</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <select id="levelSelect" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;">
+              <option value="">اختر المستوى</option>
+            </select>
+            <select id="classSelect" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;">
+              <option value="">اختر القسم</option>
+            </select>
+            <input type="date" id="dateSelect" style="padding:8px 12px;border:1px solid var(--color-border);border-radius:8px;font-size:13px;">
+          </div>
+        </div>
+        <div id="studentAttendanceList"></div>
+        <div style="margin-top:14px;text-align:left;">
+          <button class="btn btn-success" id="saveAttendanceBtn">💾 حفظ الكل</button>
+        </div>
+      </div>
+
+      <div class="card" id="whatsappPanel" style="display:none;margin-bottom:16px;border-right:4px solid var(--color-success-green);">
+        <h3 style="margin-bottom:10px;">💬 إشعار أولياء أمور الغائبين عبر واتساب</h3>
+        <p style="font-size:12.5px;color:var(--color-text-muted);margin-bottom:12px;">
+          اضغط على اسم كل طالب لفتح واتساب مع رسالة جاهزة لولي أمره (يبقى فقط الضغط على "إرسال" داخل واتساب).
+        </p>
+        <div id="whatsappList" style="display:flex;flex-direction:column;gap:8px;"></div>
+      </div>
+
+      <div class="card">
+        <h3 style="margin-bottom:12px;">نسبة حضور طلاب الفصل المختار</h3>
+        <table>
+          <thead><tr><th>الطالب</th><th>عدد أيام الحضور المسجلة</th><th>نسبة الحضور</th></tr></thead>
+          <tbody id="attendanceRateBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/pages/ui-helpers.js"></script>
+<script src="../js/pages/attendance.js"></script>
+</body>
+</html>

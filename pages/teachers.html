@@ -1,0 +1,107 @@
+<!-- pages/teachers.html — إدارة المدرسين والمواد الدراسية -->
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>المدرسون والمواد الدراسية — منصة إدارة المدارس</title>
+<link rel="stylesheet" href="../css/variables.css">
+<link rel="stylesheet" href="../css/style.css">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+<div class="app-shell" id="layout-root">
+  <div class="main-area">
+    <div class="topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <button class="btn btn-outline sidebar-toggle" id="sidebar-toggle-btn">☰</button>
+        <h2 id="page-title">المدرسون والمواد الدراسية</h2>
+      </div>
+      <div class="user-chip">👋 <span id="userNameChip"></span></div>
+    </div>
+
+    <div class="content">
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="tab-teachers">🧑‍🏫 المدرسون</button>
+        <button class="tab-btn" data-tab="tab-subjects">📘 المواد الدراسية</button>
+      </div>
+
+      <!-- تبويب المدرسين -->
+      <div class="tab-panel active" id="tab-teachers">
+        <div class="card">
+          <div class="card-header">
+            <h3>قائمة المدرسين</h3>
+            <button class="btn btn-primary btn-sm" id="addTeacherBtn">+ إضافة مدرس</button>
+          </div>
+          <table>
+            <thead><tr><th>الاسم</th><th>التخصص</th><th>المواد</th><th>الفصول</th><th></th></tr></thead>
+            <tbody id="teachersTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- تبويب المواد -->
+      <div class="tab-panel" id="tab-subjects">
+        <div class="card">
+          <div class="card-header">
+            <h3>المواد الدراسية</h3>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-outline btn-sm" id="addDefaultSubjectsBtn">📚 إضافة المواد الرسمية دفعة واحدة</button>
+              <button class="btn btn-primary btn-sm" id="addSubjectBtn">+ إضافة مادة</button>
+            </div>
+          </div>
+          <table>
+            <thead><tr><th>اسم المادة</th><th>المستوى</th><th>عدد الحصص الأسبوعية</th><th></th></tr></thead>
+            <tbody id="subjectsTableBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal مدرس -->
+<div class="modal-overlay" id="teacherModal">
+  <div class="modal-box">
+    <h3 id="teacherModalTitle">إضافة مدرس</h3>
+    <input type="hidden" id="teacherId">
+    <div class="field"><label>الاسم الكامل</label><input type="text" id="teacherName"></div>
+    <div class="field"><label>التخصص</label><input type="text" id="teacherSpecialty"></div>
+    <div class="field"><label>المواد التي يدرّسها</label>
+      <select id="teacherSubjects" multiple size="4"></select>
+    </div>
+    <div class="field"><label>الفصول</label>
+      <select id="teacherClasses" multiple size="4"></select>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancelTeacherBtn">إلغاء</button>
+      <button class="btn btn-primary" id="saveTeacherBtn">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal مادة -->
+<div class="modal-overlay" id="subjectModal">
+  <div class="modal-box">
+    <h3 id="subjectModalTitle">إضافة مادة</h3>
+    <input type="hidden" id="subjectId">
+    <div class="field"><label>اسم المادة</label><input type="text" id="subjectName"></div>
+    <div class="field"><label>المستوى</label><input type="text" id="subjectLevel" placeholder="مثال: إعدادي"></div>
+    <div class="field"><label>عدد الحصص الأسبوعية</label><input type="number" id="subjectHours" value="4"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" id="cancelSubjectBtn">إلغاء</button>
+      <button class="btn btn-primary" id="saveSubjectBtn">حفظ</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="../js/supabase-client.js"></script>
+<script src="../js/db.js"></script>
+<script src="../js/auth.js"></script>
+<script src="../js/pages/ui-helpers.js"></script>
+<script src="../js/pages/teachers.js"></script>
+</body>
+</html>
